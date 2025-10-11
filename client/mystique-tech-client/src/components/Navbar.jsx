@@ -17,7 +17,7 @@ const Navbar = () => {
     // <nav style={{ backgroundColor: 'var(--mystique-purple-600)' }} className="text-white p-4">
     <nav  className="text-black p-4 bg-blue/30 backdrop-blur-md  rounded-2xl shadow-lg">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <Link to="/" className="text-2xl font-elegant font-bold">Mystique Tech</Link>
+        <Link to="/" className="text-2xl font-elegant font-bold">XE-Tech</Link>
         
         <div className="flex items-center space-x-6">
           <Link to="/" className="hover:text-purple-200 transition duration-300">Home</Link>

@@ -10,6 +10,7 @@ import Cart from './pages/Cart';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Admin from './pages/Admin';
+import PrivateRoute from './components/PrivateRoute';
 import './index.css';
 
 function App() {
@@ -27,6 +28,21 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
+              <Route 
+                path="/admin" 
+                element={
+                  <PrivateRoute>
+                    <Admin />
+                  </PrivateRoute>
+                } 
+              />  
+              <Route path="/cart" element={
+      <PrivateRoute>
+        <Cart />
+      </PrivateRoute>
+    } 
+  />
             </Routes>
           </div>
         </Router>

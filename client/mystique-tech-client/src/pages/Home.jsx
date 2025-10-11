@@ -15,7 +15,7 @@ const Home = () => {
         className="text-white py-20 h-[80vh] "
       >
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-5xl font-elegant mb-6">Welcome to Mystique Tech</h1>
+          <h1 className="text-5xl font-elegant mb-6">Welcome to XE-Tech</h1>
           <p className="text-xl mb-8">Discover beautifully designed tech gadgets that combine style and functionality</p>
           <Link 
             to="/products" 

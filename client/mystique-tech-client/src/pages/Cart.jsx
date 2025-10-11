@@ -26,6 +26,7 @@ const Cart = () => {
   };
 
   if (cartItems.length === 0) {
+    console.log('Cart items:', cartItems);
     return (
       <div className="min-h-screen py-12">
         <div className="max-w-4xl mx-auto px-4">
@@ -52,10 +53,18 @@ const Cart = () => {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Cart Items */}
           <div className="p-6">
-            {cartItems.map(item => (
-              <div key={item._id} className="flex items-center border-b border-gray-200 py-4 last:border-b-0">
-                <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center mr-4">
-                  <span className="text-2xl">{item.image}</span>
+            {cartItems.map((item) => (
+              <div key={item.id} className="flex items-center border-b border-gray-200 py-4 last:border-b-0">
+                <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center mr-4 overflow-hidden">
+                  {item.image ? (
+                    <img 
+                      src={item.image} 
+                      alt={item.name}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  ) : (
+                    <span className="text-2xl">📱</span>
+                  )}
                 </div>
                 
                 <div className="flex-grow">
@@ -65,7 +74,7 @@ const Cart = () => {
                 
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
+                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                     className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition duration-300"
                   >
                     -
@@ -74,7 +83,7 @@ const Cart = () => {
                   <span className="w-8 text-center font-semibold">{item.quantity}</span>
                   
                   <button
-                    onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
+                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                     className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition duration-300"
                   >
                     +
@@ -84,7 +93,7 @@ const Cart = () => {
                 <div className="ml-4 text-right">
                   <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
                   <button
-                    onClick={() => removeFromCart(item._id)}
+                    onClick={() => removeFromCart(item.id)}
                     className="text-red-500 hover:text-red-700 text-sm mt-1 transition duration-300"
                   >
                     Remove

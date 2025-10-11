@@ -95,7 +95,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-mystique-purple-500 to-mystique-pink-500 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mystique-purple-500 disabled:opacity-50 transition duration-300"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-black bg-blue-200 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mystique-purple-500 disabled:opacity-50 transition duration-300"
             >
               {loading ? (
                 <span className="flex items-center">
