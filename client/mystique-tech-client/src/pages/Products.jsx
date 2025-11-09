@@ -26,10 +26,11 @@ const Products = () => {
 
   return (
     <div className="min-h-screen py-12">
+      
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-elegant text-mystique-purple-800 mb-4">
+          <h1 className="text-4xl font-elegant text-Xe-purple-800 mb-4">
             Our Products
           </h1>
           <p className="text-lg text-gray-600">
@@ -46,7 +47,7 @@ const Products = () => {
                 onClick={() => setSelectedCategory(category.value)}
                 className={`px-4 py-2 rounded-full transition duration-300 ${
                   selectedCategory === category.value
-                    ? 'bg-gradient-to-r from-mystique-purple-500 to-mystique-pink-500 text-white'
+                    ? 'bg-gradient-to-r from-Xe-purple-500 to-Xe-pink-500 text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -72,7 +73,7 @@ const Products = () => {
               
               <div className="p-6">
                 <Link to={`/product/${product.id}`}>
-                  <h3 className="text-xl font-semibold text-mystique-purple-800 mb-2 hover:text-mystique-purple-600 cursor-pointer">
+                  <h3 className="text-xl font-semibold text-Xe-purple-800 mb-2 hover:text-Xe-purple-600 cursor-pointer">
                     {product.name}
                   </h3>
                 </Link>
@@ -82,7 +83,7 @@ const Products = () => {
                 </p>
                 
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-mystique-pink-600 font-bold text-lg">
+                  <span className="text-Xe-pink-600 font-bold text-lg">
                     ${product.price}
                   </span>
                   {!product.inStock && (

@@ -31,11 +31,11 @@ const Cart = () => {
       <div className="min-h-screen py-12">
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center">
-            <h1 className="text-4xl font-elegant text-mystique-purple-800 mb-4">Your Cart</h1>
+            <h1 className="text-4xl font-elegant text-Xe-purple-800 mb-4">Your Cart</h1>
             <p className="text-gray-600 mb-8">Your cart is empty</p>
             <Link 
               to="/products"
-              className="bg-gradient-to-r from-mystique-purple-500 to-mystique-pink-500 text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition duration-300"
+              className="bg-gradient-to-r from-Xe-purple-500 to-Xe-pink-500 text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition duration-300"
             >
               Continue Shopping
             </Link>
@@ -48,7 +48,7 @@ const Cart = () => {
   return (
     <div className="min-h-screen py-12">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-elegant text-mystique-purple-800 mb-8 text-center">Your Shopping Cart</h1>
+        <h1 className="text-4xl font-elegant text-Xe-purple-800 mb-8 text-center">Your Shopping Cart</h1>
         
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Cart Items */}
@@ -68,8 +68,8 @@ const Cart = () => {
                 </div>
                 
                 <div className="flex-grow">
-                  <h3 className="font-semibold text-mystique-purple-800">{item.name}</h3>
-                  <p className="text-mystique-pink-600 font-bold">${item.price}</p>
+                  <h3 className="font-semibold text-Xe-purple-800">{item.name}</h3>
+                  <p className="text-Xe-pink-600 font-bold">${item.price}</p>
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -107,7 +107,7 @@ const Cart = () => {
           <div className="bg-gray-50 p-6">
             <div className="flex justify-between items-center mb-4">
               <span className="text-lg font-semibold">Subtotal:</span>
-              <span className="text-lg font-bold text-mystique-pink-600">${getCartTotal().toFixed(2)}</span>
+              <span className="text-lg font-bold text-Xe-pink-600">${getCartTotal().toFixed(2)}</span>
             </div>
             
             <div className="flex justify-between items-center mb-4">
@@ -117,7 +117,7 @@ const Cart = () => {
             
             <div className="flex justify-between items-center mb-6 border-t border-gray-200 pt-4">
               <span className="text-xl font-semibold">Total:</span>
-              <span className="text-xl font-bold text-mystique-pink-600">${getCartTotal().toFixed(2)}</span>
+              <span className="text-xl font-bold text-Xe-pink-600">${getCartTotal().toFixed(2)}</span>
             </div>
             
             <div className="flex gap-4">
@@ -130,7 +130,7 @@ const Cart = () => {
               
               <button
                 onClick={handleCheckout}
-                className="flex-1 bg-gradient-to-r from-mystique-purple-500 to-mystique-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition duration-300"
+                className="flex-1 bg-gradient-to-r from-Xe-purple-500 to-Xe-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition duration-300"
               >
                 Proceed to Checkout
               </button>
@@ -138,7 +138,7 @@ const Cart = () => {
             
             <Link 
               to="/products"
-              className="block text-center text-mystique-purple-600 hover:text-mystique-purple-800 mt-4 transition duration-300"
+              className="block text-center text-Xe-purple-600 hover:text-Xe-purple-800 mt-4 transition duration-300"
             >
               Continue Shopping
             </Link>

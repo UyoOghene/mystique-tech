@@ -55,7 +55,7 @@ const ProductDetail = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-mystique-purple-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-Xe-purple-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading product details...</p>
         </div>
       </div>
@@ -70,7 +70,7 @@ const ProductDetail = () => {
           <p className="text-gray-600 mb-4">The product you're looking for doesn't exist.</p>
           <Link 
             to="/products" 
-            className="bg-gradient-to-r from-mystique-purple-500 to-mystique-pink-500 text-white px-6 py-2 rounded-lg hover:opacity-90 transition duration-300"
+            className="bg-gradient-to-r from-Xe-purple-500 to-Xe-pink-500 text-white px-6 py-2 rounded-lg hover:opacity-90 transition duration-300"
           >
             Back to Products
           </Link>
@@ -98,11 +98,11 @@ const ProductDetail = () => {
         <nav className="flex mb-8" aria-label="Breadcrumb">
           <ol className="flex items-center space-x-2 text-sm">
             <li>
-              <Link to="/" className="text-gray-500 hover:text-mystique-purple-600">Home</Link>
+              <Link to="/" className="text-gray-500 hover:text-Xe-purple-600">Home</Link>
             </li>
             <li className="flex items-center">
               <span className="text-gray-400 mx-2">/</span>
-              <Link to="/products" className="text-gray-500 hover:text-mystique-purple-600">Products</Link>
+              <Link to="/products" className="text-gray-500 hover:text-Xe-purple-600">Products</Link>
             </li>
             <li className="flex items-center">
               <span className="text-gray-400 mx-2">/</span>
@@ -132,7 +132,7 @@ const ProductDetail = () => {
                     onClick={() => setSelectedImage(index)}
                     className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition duration-300 ${
                       selectedImage === index 
-                        ? 'border-mystique-purple-500 ring-2 ring-mystique-purple-200' 
+                        ? 'border-Xe-purple-500 ring-2 ring-Xe-purple-200' 
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -151,7 +151,7 @@ const ProductDetail = () => {
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
                 <div className="flex items-center space-x-4 mb-4">
-                  <span className="text-2xl font-bold text-mystique-pink-600">
+                  <span className="text-2xl font-bold text-Xe-pink-600">
                     ${product.price}
                   </span>
                   {product.inStock ? (
@@ -226,7 +226,7 @@ const ProductDetail = () => {
                       disabled={!user}
                       className={`flex-1 py-3 px-6 rounded-lg transition duration-300 font-semibold ${
                         user 
-                          ? 'bg-gradient-to-r from-mystique-purple-500 to-mystique-pink-500 text-white hover:opacity-90'
+                          ? 'bg-gradient-to-r from-Xe-purple-500 to-Xe-pink-500 text-white hover:opacity-90'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
                     >
@@ -256,7 +256,7 @@ const ProductDetail = () => {
                 <div className="flex justify-center">
                   <Link 
                     to="/products" 
-                    className="text-mystique-purple-600 hover:text-mystique-purple-800 font-medium transition duration-300"
+                    className="text-Xe-purple-600 hover:text-Xe-purple-800 font-medium transition duration-300"
                   >
                     ← Back to Products
                   </Link>
@@ -284,12 +284,12 @@ const ProductDetail = () => {
                   </Link>
                   <div className="p-4">
                     <Link to={`/product/${relatedProduct.id}`}>
-                      <h3 className="font-semibold text-gray-800 mb-2 hover:text-mystique-purple-600 transition duration-300">
+                      <h3 className="font-semibold text-gray-800 mb-2 hover:text-Xe-purple-600 transition duration-300">
                         {relatedProduct.name}
                       </h3>
                     </Link>
                     <div className="flex justify-between items-center">
-                      <span className="text-mystique-pink-600 font-bold">
+                      <span className="text-Xe-pink-600 font-bold">
                         ${relatedProduct.price}
                       </span>
                       <span className={`text-xs px-2 py-1 rounded-full ${

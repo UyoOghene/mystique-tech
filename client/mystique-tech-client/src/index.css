@@ -3,27 +3,27 @@
 @import 'tailwindcss';
 
 :root {
-  --mystique-purple-50: #faf5ff;
-  --mystique-purple-100: #f3e8ff;
-  --mystique-purple-200: #e9d5ff;
-  --mystique-purple-300: #d8b4fe;
-  --mystique-purple-400: #c084fc;
-  --mystique-purple-500: #a855f7;
-  --mystique-purple-600: #9333ea;
-  --mystique-purple-700: #7c3aed;
-  --mystique-purple-800: #6b21a8;
-  --mystique-purple-900: #581c87;
+  --Xe-purple-50: #faf5ff;
+  --Xe-purple-100: #f3e8ff;
+  --Xe-purple-200: #e9d5ff;
+  --Xe-purple-300: #d8b4fe;
+  --Xe-purple-400: #c084fc;
+  --Xe-purple-500: #a855f7;
+  --Xe-purple-600: #9333ea;
+  --Xe-purple-700: #7c3aed;
+  --Xe-purple-800: #6b21a8;
+  --Xe-purple-900: #581c87;
   
-  --mystique-pink-50: #fdf2f8;
-  --mystique-pink-100: #fce7f3;
-  --mystique-pink-200: #fbcfe8;
-  --mystique-pink-300: #f9a8d4;
-  --mystique-pink-400: #f472b6;
-  --mystique-pink-500: #ec4899;
-  --mystique-pink-600: #db2777;
-  --mystique-pink-700: #be185d;
-  --mystique-pink-800: #9d174d;
-  --mystique-pink-900: #831843;
+  --Xe-pink-50: #fdf2f8;
+  --Xe-pink-100: #fce7f3;
+  --Xe-pink-200: #fbcfe8;
+  --Xe-pink-300: #f9a8d4;
+  --Xe-pink-400: #f472b6;
+  --Xe-pink-500: #ec4899;
+  --Xe-pink-600: #db2777;
+  --Xe-pink-700: #be185d;
+  --Xe-pink-800: #9d174d;
+  --Xe-pink-900: #831843;
 }
 
 body {
@@ -33,3 +33,270 @@ body {
 .font-elegant {
   font-family: 'Playfair Display', serif;
 }
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-property: color, background-color, border-color, transform, box-shadow, opacity;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animation Delays */
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animation-delay-500 {
+  animation-delay: 500ms;
+}
+
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
+.animation-delay-800 {
+  animation-delay: 800ms;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1000ms;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2000ms;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4000ms;
+}
+
+/* Transition Delays */
+.transition-delay-200 {
+  transition-delay: 200ms;
+}
+
+.transition-delay-400 {
+  transition-delay: 400ms;
+}
+
+.transition-delay-600 {
+  transition-delay: 600ms;
+}
+
+.transition-delay-800 {
+  transition-delay: 800ms;
+}
+
+/* Blob Animation */
+@keyframes blob {
+  0% { 
+    transform: translate(0px, 0px) scale(1); 
+  }
+  33% { 
+    transform: translate(30px, -50px) scale(1.1); 
+  }
+  66% { 
+    transform: translate(-20px, 20px) scale(0.9); 
+  }
+  100% { 
+    transform: translate(0px, 0px) scale(1); 
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite ease-in-out;
+}
+
+/* Float Animation */
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-20px); 
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Glow Animation */
+@keyframes glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.5); 
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.8); 
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Gradient Animation */
+@keyframes gradient {
+  0% { 
+    background-position: 0% 50%; 
+  }
+  50% { 
+    background-position: 100% 50%; 
+  }
+  100% { 
+    background-position: 0% 50%; 
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+/* Orbit Animation */
+@keyframes orbit {
+  0% { 
+    transform: rotate(0deg) translateX(60px) rotate(0deg); 
+  }
+  100% { 
+    transform: rotate(360deg) translateX(60px) rotate(-360deg); 
+  }
+}
+
+.animate-orbit {
+  animation: orbit 4s linear infinite;
+}
+
+/* Custom easing for smooth transitions */
+.transition-smooth {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ensure backdrop blur works properly */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+}
+
+.backdrop-blur-md {
+  backdrop-filter: blur(8px);
+}
+
+.backdrop-blur-lg {
+  backdrop-filter: blur(16px);
+}
+
+.backdrop-blur-xl {
+  backdrop-filter: blur(24px);
+}
+
+/* Glass morphism effects */
+.glass {
+  backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-dark {
+  backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(17, 25, 40, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--Xe-purple-500), var(--Xe-pink-500));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--Xe-purple-600), var(--Xe-pink-600));
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--Xe-purple-500);
+  outline-offset: 2px;
+}
+
+/* Loading animation */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Pulse animation for modern effects */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Bounce animation with custom timing */
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(-5%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s infinite;
+}
+/* Fade In Up Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Staggered animation delays */
+.stagger-delay-0 { animation-delay: 0ms; }
+.stagger-delay-100 { animation-delay: 100ms; }
+.stagger-delay-200 { animation-delay: 200ms; }
+.stagger-delay-300 { animation-delay: 300ms; }
+.stagger-delay-400 { animation-delay: 400ms; }
+.stagger-delay-500 { animation-delay: 500ms; }
+.stagger-delay-600 { animation-delay: 600ms; }
