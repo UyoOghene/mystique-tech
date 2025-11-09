@@ -25,11 +25,18 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
               <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/cart" element={<Cart />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
+              
+              {/* Protected Routes */}
+              <Route 
+                path="/cart" 
+                element={
+                  <PrivateRoute>
+                    <Cart />
+                  </PrivateRoute>
+                } 
+              />
               <Route 
                 path="/admin" 
                 element={
@@ -37,15 +44,9 @@ function App() {
                     <Admin />
                   </PrivateRoute>
                 } 
-              />  
-              <Route path="/cart" element={
-      <PrivateRoute>
-        <Cart />
-      </PrivateRoute>
-    } 
-  />
+              />
             </Routes>
-            < Footer />
+            <Footer />
           </div>
         </Router>
       </CartProvider>
