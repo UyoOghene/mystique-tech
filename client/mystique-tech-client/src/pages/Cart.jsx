@@ -8,6 +8,8 @@ const Cart = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  console.log('Cart items:', cartItems); // Debug log
+
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity < 1) return;
     updateQuantity(productId, newQuantity);
@@ -20,22 +22,26 @@ const Cart = () => {
       return;
     }
     
+    if (cartItems.length === 0) {
+      alert('Your cart is empty!');
+      return;
+    }
+    
     // For now, just show a success message
     alert('Thank you for your order! This is a demo - no real transaction occurred.');
     clearCart();
   };
 
-  if (cartItems.length === 0) {
-    console.log('Cart items:', cartItems);
+  if (!cartItems || cartItems.length === 0) {
     return (
       <div className="min-h-screen py-12">
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center">
-            <h1 className="text-4xl font-elegant text-Xe-purple-800 mb-4">Your Cart</h1>
+            <h1 className="text-4xl font-elegant text-purple-800 mb-4">Your Cart</h1>
             <p className="text-gray-600 mb-8">Your cart is empty</p>
             <Link 
               to="/products"
-              className="bg-gradient-to-r from-Xe-purple-500 to-Xe-pink-500 text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition duration-300"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition duration-300"
             >
               Continue Shopping
             </Link>
@@ -48,66 +54,73 @@ const Cart = () => {
   return (
     <div className="min-h-screen py-12">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-elegant text-Xe-purple-800 mb-8 text-center">Your Shopping Cart</h1>
+        <h1 className="text-4xl font-elegant text-purple-800 mb-8 text-center">Your Shopping Cart</h1>
         
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Cart Items */}
           <div className="p-6">
-            {cartItems.map((item) => (
-              <div key={item.id} className="flex items-center border-b border-gray-200 py-4 last:border-b-0">
-                <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center mr-4 overflow-hidden">
-                  {item.image ? (
+            {cartItems.map((item) => {
+              const productId = item.id || item._id;
+              const productName = item.name || 'Unnamed Product';
+              const productPrice = Number(item.price) || 0;
+              const productQuantity = Number(item.quantity) || 0;
+              const productImage = item.image || '/images/placeholder-product.jpg';
+
+              return (
+                <div key={productId} className="flex items-center border-b border-gray-200 py-4 last:border-b-0">
+                  <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center mr-4 overflow-hidden">
                     <img 
-                      src={item.image} 
-                      alt={item.name}
+                      src={productImage} 
+                      alt={productName}
                       className="w-full h-full object-cover rounded-lg"
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/80x80?text=No+Image';
+                      }}
                     />
-                  ) : (
-                    <span className="text-2xl">📱</span>
-                  )}
-                </div>
-                
-                <div className="flex-grow">
-                  <h3 className="font-semibold text-Xe-purple-800">{item.name}</h3>
-                  <p className="text-Xe-pink-600 font-bold">${item.price}</p>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                    className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition duration-300"
-                  >
-                    -
-                  </button>
+                  </div>
                   
-                  <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                  <div className="flex-grow">
+                    <h3 className="font-semibold text-purple-800">{productName}</h3>
+                    <p className="text-pink-600 font-bold">${productPrice.toFixed(2)}</p>
+                  </div>
                   
-                  <button
-                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                    className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition duration-300"
-                  >
-                    +
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleQuantityChange(productId, productQuantity - 1)}
+                      className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition duration-300"
+                    >
+                      -
+                    </button>
+                    
+                    <span className="w-8 text-center font-semibold">{productQuantity}</span>
+                    
+                    <button
+                      onClick={() => handleQuantityChange(productId, productQuantity + 1)}
+                      className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition duration-300"
+                    >
+                      +
+                    </button>
+                  </div>
+                  
+                  <div className="ml-4 text-right">
+                    <p className="font-semibold">${(productPrice * productQuantity).toFixed(2)}</p>
+                    <button
+                      onClick={() => removeFromCart(productId)}
+                      className="text-red-500 hover:text-red-700 text-sm mt-1 transition duration-300"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
-                
-                <div className="ml-4 text-right">
-                  <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
-                  <button
-                    onClick={() => removeFromCart(item.id)}
-                    className="text-red-500 hover:text-red-700 text-sm mt-1 transition duration-300"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           
           {/* Cart Summary */}
           <div className="bg-gray-50 p-6">
             <div className="flex justify-between items-center mb-4">
               <span className="text-lg font-semibold">Subtotal:</span>
-              <span className="text-lg font-bold text-Xe-pink-600">${getCartTotal().toFixed(2)}</span>
+              <span className="text-lg font-bold text-pink-600">${getCartTotal().toFixed(2)}</span>
             </div>
             
             <div className="flex justify-between items-center mb-4">
@@ -117,7 +130,7 @@ const Cart = () => {
             
             <div className="flex justify-between items-center mb-6 border-t border-gray-200 pt-4">
               <span className="text-xl font-semibold">Total:</span>
-              <span className="text-xl font-bold text-Xe-pink-600">${getCartTotal().toFixed(2)}</span>
+              <span className="text-xl font-bold text-pink-600">${getCartTotal().toFixed(2)}</span>
             </div>
             
             <div className="flex gap-4">
@@ -130,7 +143,7 @@ const Cart = () => {
               
               <button
                 onClick={handleCheckout}
-                className="flex-1 bg-gradient-to-r from-Xe-purple-500 to-Xe-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition duration-300"
+                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition duration-300"
               >
                 Proceed to Checkout
               </button>
@@ -138,7 +151,7 @@ const Cart = () => {
             
             <Link 
               to="/products"
-              className="block text-center text-Xe-purple-600 hover:text-Xe-purple-800 mt-4 transition duration-300"
+              className="block text-center text-purple-600 hover:text-purple-800 mt-4 transition duration-300"
             >
               Continue Shopping
             </Link>
