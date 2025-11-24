@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import xeLogo from '/images/Xe-logo.png';
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { cartItems, getCartItemsCount } = useCart();
@@ -15,7 +16,19 @@ const Navbar = () => {
     setIsMenuOpen(false);
   };
 
-  const cartItemsCount = getCartItemsCount ? getCartItemsCount() : cartItems.reduce((total, item) => total + item.quantity, 0);
+  // Safe user data access functions
+  const getUserFirstName = () => {
+    if (!user) return '';
+    return user.firstName || user.name?.split(' ')[0] || 'User';
+  };
+
+  const getUserInitial = () => {
+    if (!user) return 'U';
+    const firstName = getUserFirstName();
+    return firstName.charAt(0).toUpperCase();
+  };
+
+  const cartItemsCount = getCartItemsCount ? getCartItemsCount() : cartItems.reduce((total, item) => total + (item.quantity || 0), 0);
 
   return (
     <nav className="text-violet-400 font-extrabold p-4 bg-gradient-to-r backdrop-blur-xl from-black via-black to-black shadow-xl sticky top-0 z-50">
@@ -26,15 +39,12 @@ const Navbar = () => {
             to="/" 
             className="text-3xl font-elegant font-bold bg-gradient-to-r from-white to-pink-200 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300"
           >
-                  <img 
-      src= {xeLogo}
-        alt="XE-Tech Logo" 
-        width={100}  
-        // height={80} 
-        className="mr-2" // Adds space between logo and text
-      />
-
-            {/* XE-Tech */}
+            <img 
+              src={xeLogo}
+              alt="XE-Tech Logo" 
+              width={100}  
+              className="mr-2"
+            />
           </Link>
           
           <div className="flex items-center space-x-8">
@@ -57,6 +67,8 @@ const Navbar = () => {
                 <UserSection 
                   user={user} 
                   onLogout={handleLogout}
+                  userInitial={getUserInitial()}
+                  userFirstName={getUserFirstName()}
                 />
               </>
             ) : (
@@ -67,16 +79,16 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         <div className="md:hidden flex justify-between items-center">
-    <Link to="/" className="text-2xl font-elegant font-bold flex items-center">
-      <img 
-      src= {xeLogo}
-        alt="XE-Tech Logo" 
-        width={80}  
-        height={40} 
-        className="mr-2" // Adds space between logo and text
-      />
-      {/* XE-Tech */}
-</Link>
+          <Link to="/" className="text-2xl font-elegant font-bold flex items-center">
+            <img 
+              src={xeLogo}
+              alt="XE-Tech Logo" 
+              width={80}  
+              height={40} 
+              className="mr-2"
+            />
+          </Link>
+          
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -93,8 +105,8 @@ const Navbar = () => {
         {/* Mobile Menu Dropdown */}
         {isMenuOpen && (
           <div className="md:hidden mt-4 bg-violet-900/5 backdrop-blur-xl rounded-2xl p-6 animate-fadeIn">
-            <div className="flex flex-col space-y-4 ">
-              <MobileNavLink to="/" className='bg-violet-900' onClick={() => setIsMenuOpen(false)}>
+            <div className="flex flex-col space-y-4">
+              <MobileNavLink to="/" onClick={() => setIsMenuOpen(false)}>
                 Home
               </MobileNavLink>
               <MobileNavLink to="/products" onClick={() => setIsMenuOpen(false)}>
@@ -112,7 +124,9 @@ const Navbar = () => {
                   )}
                   <div className="pt-4 border-t border-white/20">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-pink-900 font-bold">Hello, {user.firstName}</span>
+                      <span className="text-pink-900 font-bold">
+                        Hello, {getUserFirstName()}
+                      </span>
                     </div>
                     <button 
                       onClick={handleLogout}
@@ -140,9 +154,8 @@ const Navbar = () => {
           </div>
         )}
       </div>
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white to-transparent animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pink-50 to-transparent animate-pulse delay-500"></div>
-
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white to-transparent animate-pulse"></div>
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pink-50 to-transparent animate-pulse delay-500"></div>
     </nav>
   );
 };
@@ -185,15 +198,18 @@ const AdminLink = ({ onClick }) => (
   </Link>
 );
 
-const UserSection = ({ user, onLogout }) => (
+// Updated UserSection with safe data access
+const UserSection = ({ user, onLogout, userInitial, userFirstName }) => (
   <div className="flex items-center space-x-4 pl-4 border-l border-white/20">
     <div className="flex items-center space-x-2">
       <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
         <span className="text-sm font-bold text-pink-200">
-          {user.firstName.charAt(0).toUpperCase()}
+          {userInitial}
         </span>
       </div>
-      <span className="text-pink-200 hidden lg:block">Hello, {user.firstName}</span>
+      <span className="text-pink-200 hidden lg:block">
+        Hello, {userFirstName}
+      </span>
     </div>
     <button 
       onClick={onLogout}
