@@ -5,21 +5,15 @@ require('dotenv').config();
 
 const app = express();
 
-// Enhanced CORS configuration
+// CORS configuration
 app.use(cors({
   origin: [
-    'https://xetechcl.vercel.app', // Your frontend domain
+    'https://xetech.vercel.app', // Replace with your actual frontend URL
     'http://localhost:3000',
     'http://localhost:5173'
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true,
-  optionsSuccessStatus: 200
+  credentials: true
 }));
-
-// Handle preflight requests
-app.options('*', cors());
 
 app.use(express.json());
 
