@@ -6,7 +6,7 @@ import xeLogo from '/images/Xe-logo.png';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
-  const { cartItems, getCartItemsCount } = useCart();
+  const { cartItems, getCartItemsCount: getCartCountFromContext } = useCart(); // Renamed here
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -16,19 +16,49 @@ const Navbar = () => {
     setIsMenuOpen(false);
   };
 
-  // Safe user data access functions
+  // SUPER SAFE user data access functions
   const getUserFirstName = () => {
-    if (!user) return '';
-    return user.firstName || user.name?.split(' ')[0] || 'User';
+    if (!user || typeof user !== 'object') return 'User';
+    
+    // Try multiple possible name fields
+    if (user.firstName && typeof user.firstName === 'string') {
+      return user.firstName;
+    }
+    if (user.name && typeof user.name === 'string') {
+      return user.name.split(' ')[0] || 'User';
+    }
+    return 'User';
   };
 
   const getUserInitial = () => {
-    if (!user) return 'U';
     const firstName = getUserFirstName();
-    return firstName.charAt(0).toUpperCase();
+    // Safe charAt with fallback
+    return firstName && typeof firstName.charAt === 'function' 
+      ? firstName.charAt(0).toUpperCase() 
+      : 'U';
   };
 
-  const cartItemsCount = getCartItemsCount ? getCartItemsCount() : cartItems.reduce((total, item) => total + (item.quantity || 0), 0);
+  // Safe cart count calculation - RENAMED FUNCTION
+  const calculateCartItemsCount = () => {
+    if (getCartCountFromContext && typeof getCartCountFromContext === 'function') {
+      return getCartCountFromContext();
+    }
+    
+    if (!Array.isArray(cartItems)) return 0;
+    
+    return cartItems.reduce((total, item) => {
+      const quantity = Number(item.quantity) || 0;
+      return total + quantity;
+    }, 0);
+  };
+
+  const cartItemsCount = calculateCartItemsCount(); // Use the renamed function
+
+  // Check if user is admin safely
+  const isUserAdmin = () => {
+    if (!user || typeof user !== 'object') return false;
+    return Boolean(user.role === 'admin' || user.isAdmin);
+  };
 
   return (
     <nav className="text-violet-400 font-extrabold p-4 bg-gradient-to-r backdrop-blur-xl from-black via-black to-black shadow-xl sticky top-0 z-50">
@@ -61,11 +91,10 @@ const Navbar = () => {
                   itemsCount={cartItemsCount} 
                   onClick={() => setIsMenuOpen(false)}
                 />
-                {(user.role === 'admin' || user.isAdmin) && (
+                {isUserAdmin() && (
                   <AdminLink onClick={() => setIsMenuOpen(false)} />
                 )}
                 <UserSection 
-                  user={user} 
                   onLogout={handleLogout}
                   userInitial={getUserInitial()}
                   userFirstName={getUserFirstName()}
@@ -84,7 +113,6 @@ const Navbar = () => {
               src={xeLogo}
               alt="XE-Tech Logo" 
               width={80}  
-              height={40} 
               className="mr-2"
             />
           </Link>
@@ -94,7 +122,7 @@ const Navbar = () => {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="p-2 rounded-lg bg-violet-100/5 backdrop-blur-xl hover:bg-white/10 transition duration-300"
           >
-            <div className="w-6 h-6 text- flex flex-col justify-center space-y-1">
+            <div className="w-6 h-6 flex flex-col justify-center space-y-1">
               <span className={`block h-0.5 w-full bg-white transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
               <span className={`block h-0.5 w-full bg-white transition-all duration-300 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
               <span className={`block h-0.5 w-full bg-white transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
@@ -104,7 +132,7 @@ const Navbar = () => {
 
         {/* Mobile Menu Dropdown */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 bg-violet-900/5 backdrop-blur-xl rounded-2xl p-6 animate-fadeIn">
+          <div className="md:hidden mt-4 bg-violet-900/5 backdrop-blur-xl rounded-2xl p-6">
             <div className="flex flex-col space-y-4">
               <MobileNavLink to="/" onClick={() => setIsMenuOpen(false)}>
                 Home
@@ -119,12 +147,12 @@ const Navbar = () => {
                     itemsCount={cartItemsCount} 
                     onClick={() => setIsMenuOpen(false)}
                   />
-                  {(user.role === 'admin' || user.isAdmin) && (
+                  {isUserAdmin() && (
                     <MobileAdminLink onClick={() => setIsMenuOpen(false)} />
                   )}
                   <div className="pt-4 border-t border-white/20">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-pink-900 font-bold">
+                      <span className="text-pink-200 font-bold">
                         Hello, {getUserFirstName()}
                       </span>
                     </div>
@@ -198,8 +226,8 @@ const AdminLink = ({ onClick }) => (
   </Link>
 );
 
-// Updated UserSection with safe data access
-const UserSection = ({ user, onLogout, userInitial, userFirstName }) => (
+// UPDATED: UserSection without any direct user object access
+const UserSection = ({ onLogout, userInitial, userFirstName }) => (
   <div className="flex items-center space-x-4 pl-4 border-l border-white/20">
     <div className="flex items-center space-x-2">
       <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">

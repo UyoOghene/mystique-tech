@@ -3,16 +3,15 @@ import React from 'react';
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { hasError: false, errorInfo: null }; // Removed 'error' from state
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() { // Removed 'error' parameter
     return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
     this.setState({
-      error: error,
       errorInfo: errorInfo
     });
     console.error('Error caught by boundary:', error, errorInfo);
@@ -28,12 +27,6 @@ class ErrorBoundary extends React.Component {
               <p className="text-gray-700 mb-2">The error occurred in:</p>
               <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto">
                 {this.state.errorInfo?.componentStack}
-              </pre>
-            </div>
-            <div className="mb-6">
-              <p className="text-gray-700 mb-2">Error details:</p>
-              <pre className="bg-red-50 p-3 rounded text-sm overflow-auto text-red-700">
-                {this.state.error?.toString()}
               </pre>
             </div>
             <button
