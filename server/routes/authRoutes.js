@@ -1,4 +1,20 @@
-// In your authRoutes.js - Register endpoint
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const { protect } = require('../middleware/authMiddleware');
+
+const router = express.Router();
+
+// Generate JWT Token
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback-secret', {
+    expiresIn: '30d',
+  });
+};
+
+// @desc    Register user
+// @route   POST /api/auth/register
+// @access  Public
 router.post('/register', async (req, res) => {
   try {
     console.log('📝 Register endpoint hit');
@@ -99,3 +115,85 @@ router.post('/register', async (req, res) => {
     });
   }
 });
+
+// @desc    Login user
+// @route   POST /api/auth/login
+// @access  Public
+router.post('/login', async (req, res) => {
+  try {
+    console.log('🔐 Login endpoint hit');
+    console.log('Request body:', req.body);
+
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+    }
+
+    // Find user and include password for comparison
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+    
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Check password
+    const isPasswordMatch = await user.matchPassword(password);
+    
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    const userResponse = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      token: generateToken(user._id)
+    };
+
+    console.log('✅ Login successful:', userResponse.email);
+
+    res.json({
+      success: true,
+      ...userResponse
+    });
+
+  } catch (error) {
+    console.error('💥 Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during login',
+      error: process.env.NODE_ENV === 'production' ? {} : error.message
+    });
+  }
+});
+
+// @desc    Get user profile
+// @route   GET /api/auth/profile
+// @access  Private
+router.get('/profile', protect, async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      user: req.user
+    });
+  } catch (error) {
+    console.error('💥 Profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+module.exports = router;
