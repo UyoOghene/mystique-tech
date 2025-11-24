@@ -13,28 +13,7 @@ const AuthProvider = ({ children }) => {
         const userData = localStorage.getItem('mystiqueTechUser');
         
         if (token && userData) {
-          // Set user immediately for better UX
           setUser(JSON.parse(userData));
-          
-          // Then verify with backend
-          try {
-            const API_URL = import.meta.env.VITE_API_URL;
-            const response = await fetch(`${API_URL}/api/auth/profile`, {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            });
-            
-            if (!response.ok) {
-              // Token is invalid, clear storage
-              localStorage.removeItem('mystiqueTechToken');
-              localStorage.removeItem('mystiqueTechUser');
-              setUser(null);
-            }
-          } catch (error) {
-            console.error('Auth verification failed:', error);
-            // Keep user logged in for better UX, backend will validate on next request
-          }
         }
       } catch (error) {
         console.error('Auth check error:', error);
@@ -50,12 +29,12 @@ const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      const API_URL = import.meta.env.VITE_API_URL;
+      const API_URL = import.meta.env.VITE_API_URL || 'https://xetech.vercel.app';
       
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json', // ✅ Fixed
         },
         body: JSON.stringify({ email, password })
       });
@@ -88,12 +67,12 @@ const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      const API_URL = import.meta.env.VITE_API_URL;
+      const API_URL = import.meta.env.VITE_API_URL || 'https://xetech.vercel.app';
       
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'applicationjson',
+          'Content-Type': 'application/json', // ✅ FIXED THIS TYPO!
         },
         body: JSON.stringify(userData)
       });

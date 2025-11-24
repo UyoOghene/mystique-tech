@@ -5,15 +5,21 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS configuration
+// CORRECT CORS configuration - allow your actual frontend
 app.use(cors({
   origin: [
-    'https://xetech.vercel.app', // Replace with your actual frontend URL
+    'https://xetechcl.vercel.app', // ✅ Your actual frontend domain
+    'https://xetech.vercel.app',   // Your backend domain (optional)
     'http://localhost:3000',
     'http://localhost:5173'
   ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 app.use(express.json());
 
@@ -32,9 +38,12 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Test if routes are working
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'API routes are working!' });
+// Test CORS
+app.get('/api/test-cors', (req, res) => {
+  res.json({ 
+    message: 'CORS is working!',
+    allowedOrigin: 'https://xetechcl.vercel.app'
+  });
 });
 
 // Basic route
@@ -43,7 +52,7 @@ app.get('/', (req, res) => {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mystique-tech')
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => {
     console.error('❌ MongoDB connection error:', err);
@@ -51,11 +60,8 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mystique-
   });
 
 const PORT = process.env.PORT || 5000;
-
-// Export for Vercel
 module.exports = app;
 
-// Only listen if not in Vercel environment
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
