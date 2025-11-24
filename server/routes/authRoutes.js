@@ -1,56 +1,101 @@
-const express = require('express');
-const router = express.Router();
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-};
-
-// Register
+// In your authRoutes.js - Register endpoint
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+    console.log('📝 Register endpoint hit');
+    console.log('Request body:', req.body);
+
+    const { firstName, lastName, email, password, name } = req.body;
+
+    // Handle both name formats (frontend sends firstName/lastName, backend expects name)
+    const fullName = name || `${firstName} ${lastName}`.trim();
+
+    // Detailed validation
+    if ((!firstName || !lastName) && !name) {
+      console.log('❌ Missing name fields:', { firstName, lastName, name });
+      return res.status(400).json({
+        success: false,
+        message: 'First name and last name are required'
+      });
     }
 
-    const user = await User.create({ name, email, password });
-    
-    res.status(201).json({
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address'
+      });
+    }
+
+    // Password validation
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+
+    console.log('🔍 Checking if user exists...');
+    const userExists = await User.findOne({ email: email.toLowerCase().trim() });
+    if (userExists) {
+      console.log('❌ User already exists:', email);
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with this email'
+      });
+    }
+
+    console.log('👤 Creating new user...');
+    const user = await User.create({
+      name: fullName,
+      email: email.toLowerCase().trim(),
+      password
+    });
+
+    const userResponse = {
       _id: user._id,
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
       token: generateToken(user._id)
+    };
+
+    console.log('✅ User created successfully:', userResponse.email);
+
+    res.status(201).json({
+      success: true,
+      ...userResponse
     });
+
   } catch (error) {
-    res.status(400).json({ message: 'Invalid user data' });
-  }
-});
-
-// Login
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-
-    if (user && (await user.matchPassword(password))) {
-      res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        token: generateToken(user._id)
+    console.error('💥 Registration error:', error);
+    
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with this email'
       });
-    } else {
-      res.status(401).json({ message: 'Invalid email or password' });
     }
-  } catch (error) {
-    res.status(400).json({ message: 'Invalid user data' });
+
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', ')
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Server error during registration',
+      error: process.env.NODE_ENV === 'production' ? {} : error.message
+    });
   }
 });
-
-module.exports = router;

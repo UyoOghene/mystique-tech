@@ -1,28 +1,38 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 
-// Middleware
+// Absolute minimal CORS
 app.use(cors());
+
 app.use(express.json());
 
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/products', require('./routes/productRoutes'));
-
-// Basic route
+// Test route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to Mystique Tech API!' });
+  res.json({ message: 'Server is working!' });
 });
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mystique-tech')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Minimal server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Test auth route
+app.post('/api/auth/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Auth endpoint is working',
+    body: req.body 
+  });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Minimal server running on port ${PORT}`);
+  console.log(`🔗 Test: http://localhost:${PORT}/api/health`);
 });
