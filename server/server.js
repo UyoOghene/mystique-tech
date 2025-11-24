@@ -1,48 +1,62 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 
-// CORRECT CORS configuration - allow your actual frontend
-app.use(cors({
-  origin: [
-    'https://xetechcl.vercel.app', // ✅ Your actual frontend domain
-    'https://xetech.vercel.app',   // Your backend domain (optional)
+// MANUAL CORS MIDDLEWARE - This always works
+app.use((req, res, next) => {
+  // Allow all origins or specific ones
+  const allowedOrigins = [
+    'https://xetechcl.vercel.app',
+    'https://xetech.vercel.app',
     'http://localhost:3000',
     'http://localhost:5173'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-
-// Handle preflight requests
-app.options('*', cors());
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Fallback
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
 
 app.use(express.json());
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
-
-// Use routes
 app.use('/api/auth', authRoutes);
 
-// Health check route
-app.get('/api/health', (req, res) => {
+// Test endpoint to verify CORS is working
+app.get('/api/cors-test', (req, res) => {
   res.json({ 
-    status: 'OK', 
-    message: 'Mystique Tech API is running',
-    timestamp: new Date().toISOString()
+    message: 'CORS is working!',
+    timestamp: new Date().toISOString(),
+    allowedOrigins: [
+      'https://xetechcl.vercel.app',
+      'https://xetech.vercel.app'
+    ]
   });
 });
 
-// Test CORS
-app.get('/api/test-cors', (req, res) => {
+// Health check
+app.get('/api/health', (req, res) => {
   res.json({ 
-    message: 'CORS is working!',
-    allowedOrigin: 'https://xetechcl.vercel.app'
+    status: 'OK', 
+    message: 'Server is running with CORS enabled',
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -65,5 +79,6 @@ module.exports = app;
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🔗 CORS Test: https://xetech.vercel.app/api/cors-test`);
   });
 }
