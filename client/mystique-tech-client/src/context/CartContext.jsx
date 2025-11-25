@@ -6,82 +6,67 @@ const CartContext = createContext();
 const CartProvider = ({ children }) => {
   const { user } = useAuth();
   const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Load cart from backend when user logs in
+  // Load user's individual cart when user changes
   useEffect(() => {
-    const fetchCart = async () => {
+    const loadUserCart = async () => {
       if (!user) {
-        // For guest users, load from localStorage
+        // For guest users, use localStorage
         const guestCart = localStorage.getItem('guestCart');
-        if (guestCart) {
-          setCartItems(JSON.parse(guestCart));
-        }
+        setCartItems(guestCart ? JSON.parse(guestCart) : []);
         return;
       }
 
+      setLoading(true);
       try {
         const token = localStorage.getItem('mystiqueTechToken');
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/cart`, {
-          headers: { Authorization: `Bearer ${token}` }
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cart`, {
+          headers: { 
+            'Authorization': `Bearer ${token}` 
+          }
         });
-        
-        if (res.ok) {
-          const data = await res.json();
-          setCartItems(data);
+
+        if (response.ok) {
+          const data = await response.json();
+          setCartItems(data.items || []);
         } else {
-          console.error('Failed to fetch cart');
+          console.error('Failed to load cart');
+          setCartItems([]);
         }
-      } catch (err) {
-        console.error('Fetch cart error:', err);
-        // Fallback to localStorage for guest
-        const guestCart = localStorage.getItem('guestCart');
-        if (guestCart) {
-          setCartItems(JSON.parse(guestCart));
-        }
+      } catch (error) {
+        console.error('Load cart error:', error);
+        setCartItems([]);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchCart();
+    loadUserCart();
   }, [user]);
 
-  const saveCartToBackend = async (items) => {
+  // Save guest cart to localStorage
+  useEffect(() => {
+    if (!user && cartItems.length > 0) {
+      localStorage.setItem('guestCart', JSON.stringify(cartItems));
+    }
+  }, [cartItems, user]);
+
+  const addToCart = async (product) => {
     if (!user) {
-      // Save to localStorage for guest users
-      localStorage.setItem('guestCart', JSON.stringify(items));
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('mystiqueTechToken');
-      await fetch(`${import.meta.env.VITE_API_URL}/api/cart`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ items })
-      });
-    } catch (err) {
-      console.error('Save cart error:', err);
-    }
-  };
-
-  const addToCart = (product) => {
-    setCartItems(prev => {
-      // Use product.id for frontend, _id for backend
+      // Guest cart - add to localStorage
       const productId = product.id || product._id;
-      const existing = prev.find(item => (item.id || item._id) === productId);
+      const existingItem = cartItems.find(item => (item.id || item._id) === productId);
       
-      let updated;
-      if (existing) {
-        updated = prev.map(item => 
+      let updatedCart;
+      if (existingItem) {
+        updatedCart = cartItems.map(item => 
           (item.id || item._id) === productId 
             ? { ...item, quantity: item.quantity + 1 } 
             : item
         );
       } else {
-        // Ensure product has both id and _id for consistency
-        updated = [...prev, { 
+        updatedCart = [...cartItems, { 
           ...product, 
           id: productId,
           _id: productId,
@@ -89,40 +74,150 @@ const CartProvider = ({ children }) => {
         }];
       }
       
-      saveCartToBackend(updated);
-      return updated;
-    });
+      setCartItems(updatedCart);
+      return;
+    }
+
+    // User cart - save to backend
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('mystiqueTechToken');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cart/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          productId: product.id || product._id,
+          quantity: 1
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCartItems(data.items || []);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Failed to add item to cart');
+      }
+    } catch (error) {
+      console.error('Add to cart error:', error);
+      alert('Failed to add item to cart');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeFromCart = (productId) => {
-    setCartItems(prev => {
-      const updated = prev.filter(item => (item.id || item._id) !== productId);
-      saveCartToBackend(updated);
-      return updated;
-    });
+  const removeFromCart = async (productId) => {
+    if (!user) {
+      // Guest cart
+      const updatedCart = cartItems.filter(item => (item.id || item._id) !== productId);
+      setCartItems(updatedCart);
+      return;
+    }
+
+    // User cart - find the cart item ID
+    const cartItem = cartItems.find(item => (item.id || item._id) === productId);
+    if (!cartItem) return;
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('mystiqueTechToken');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cart/items/${cartItem._id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCartItems(data.items || []);
+      } else {
+        console.error('Failed to remove item from cart');
+      }
+    } catch (error) {
+      console.error('Remove from cart error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateQuantity = (productId, quantity) => {
-    setCartItems(prev => {
+  const updateQuantity = async (productId, quantity) => {
+    if (!user) {
+      // Guest cart
       if (quantity <= 0) {
-        const updated = prev.filter(item => (item.id || item._id) !== productId);
-        saveCartToBackend(updated);
-        return updated;
+        removeFromCart(productId);
+        return;
       }
       
-      const updated = prev.map(item => 
+      const updatedCart = cartItems.map(item => 
         (item.id || item._id) === productId 
           ? { ...item, quantity } 
           : item
       );
-      saveCartToBackend(updated);
-      return updated;
-    });
+      setCartItems(updatedCart);
+      return;
+    }
+
+    // User cart - find the cart item ID
+    const cartItem = cartItems.find(item => (item.id || item._id) === productId);
+    if (!cartItem) return;
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('mystiqueTechToken');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cart/items/${cartItem._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ quantity })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCartItems(data.items || []);
+      } else {
+        console.error('Failed to update cart quantity');
+      }
+    } catch (error) {
+      console.error('Update quantity error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-    saveCartToBackend([]);
+  const clearCart = async () => {
+    if (!user) {
+      // Guest cart
+      setCartItems([]);
+      localStorage.removeItem('guestCart');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('mystiqueTechToken');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cart`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        setCartItems([]);
+      } else {
+        console.error('Failed to clear cart');
+      }
+    } catch (error) {
+      console.error('Clear cart error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getCartTotal = () => {
@@ -145,7 +240,8 @@ const CartProvider = ({ children }) => {
       updateQuantity,
       clearCart,
       getCartTotal,
-      getCartItemsCount
+      getCartItemsCount,
+      loading
     }}>
       {children}
     </CartContext.Provider>
