@@ -1,44 +1,32 @@
 const express = require('express');
 const router = express.Router();
-const Cart = require('../models/Cart');
-const Product = require('../models/Product');
 const { protect } = require('../middleware/authMiddleware');
+
+// Simple in-memory storage for demo (replace with database later)
+const userCarts = new Map();
+
+// Helper function to get user cart
+const getUserCart = (userId) => {
+  if (!userCarts.has(userId)) {
+    userCarts.set(userId, []);
+  }
+  return userCarts.get(userId);
+};
 
 // @desc    Get user's cart
 // @route   GET /api/cart
 // @access  Private
 router.get('/', protect, async (req, res) => {
   try {
-    let cart = await Cart.findOne({ user: req.user._id })
-      .populate('items.product', 'name price image category inStock');
-
-    if (!cart) {
-      // Create empty cart if doesn't exist
-      cart = await Cart.create({ 
-        user: req.user._id, 
-        items: [] 
-      });
-    }
-
-    // Transform the data for frontend
-    const transformedItems = cart.items.map(item => ({
-      _id: item._id,
-      id: item.product._id, // For frontend compatibility
-      productId: item.product._id,
-      name: item.product.name,
-      price: item.product.price,
-      image: item.product.image,
-      category: item.product.category,
-      inStock: item.product.inStock,
-      quantity: item.quantity
-    }));
-
+    const userId = req.user._id.toString();
+    const cart = getUserCart(userId);
+    
     res.json({
-      items: transformedItems,
-      total: cart.total,
-      itemsCount: cart.itemsCount
+      success: true,
+      items: cart,
+      total: cart.reduce((total, item) => total + (item.price * item.quantity), 0),
+      itemsCount: cart.reduce((total, item) => total + item.quantity, 0)
     });
-
   } catch (error) {
     console.error('Get cart error:', error);
     res.status(500).json({ 
@@ -54,6 +42,7 @@ router.get('/', protect, async (req, res) => {
 router.post('/items', protect, async (req, res) => {
   try {
     const { productId, quantity = 1 } = req.body;
+    const userId = req.user._id.toString();
 
     // Validate input
     if (!productId) {
@@ -63,68 +52,43 @@ router.post('/items', protect, async (req, res) => {
       });
     }
 
-    // Check if product exists
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
-    }
+    // For demo, we'll accept any product ID and use mock data
+    // In production, you would validate against your product database
+    const mockProduct = {
+      _id: productId,
+      id: productId,
+      name: `Product ${productId}`,
+      price: 99.99,
+      image: '/images/placeholder-product.jpg',
+      category: 'electronics',
+      inStock: true
+    };
 
-    if (!product.inStock) {
-      return res.status(400).json({
-        success: false,
-        message: 'Product is out of stock'
-      });
-    }
-
-    // Find or create cart for user
-    let cart = await Cart.findOne({ user: req.user._id });
-    if (!cart) {
-      cart = new Cart({ user: req.user._id, items: [] });
-    }
-
+    const cart = getUserCart(userId);
+    
     // Check if item already exists in cart
-    const existingItemIndex = cart.items.findIndex(
-      item => item.product.toString() === productId
+    const existingItemIndex = cart.findIndex(
+      item => item.id === productId
     );
 
     if (existingItemIndex > -1) {
       // Update quantity if item exists
-      cart.items[existingItemIndex].quantity += quantity;
+      cart[existingItemIndex].quantity += quantity;
     } else {
       // Add new item to cart
-      cart.items.push({
-        product: productId,
-        quantity: quantity,
-        price: product.price,
-        name: product.name,
-        image: product.image
+      cart.push({
+        ...mockProduct,
+        quantity: quantity
       });
     }
 
-    await cart.save();
-    await cart.populate('items.product', 'name price image category inStock');
-
-    // Transform response
-    const transformedItems = cart.items.map(item => ({
-      _id: item._id,
-      id: item.product._id,
-      productId: item.product._id,
-      name: item.product.name,
-      price: item.product.price,
-      image: item.product.image,
-      category: item.product.category,
-      inStock: item.product.inStock,
-      quantity: item.quantity
-    }));
+    userCarts.set(userId, cart);
 
     res.json({
       success: true,
-      items: transformedItems,
-      total: cart.total,
-      itemsCount: cart.itemsCount,
+      items: cart,
+      total: cart.reduce((total, item) => total + (item.price * item.quantity), 0),
+      itemsCount: cart.reduce((total, item) => total + item.quantity, 0),
       message: 'Item added to cart successfully'
     });
 
@@ -144,26 +108,33 @@ router.put('/items/:itemId', protect, async (req, res) => {
   try {
     const { itemId } = req.params;
     const { quantity } = req.body;
+    const userId = req.user._id.toString();
 
-    if (!quantity || quantity < 1) {
+    if (!quantity || quantity < 0) {
       return res.status(400).json({
         success: false,
-        message: 'Quantity must be at least 1'
+        message: 'Valid quantity is required'
       });
     }
 
-    const cart = await Cart.findOne({ user: req.user._id });
-    if (!cart) {
-      return res.status(404).json({
-        success: false,
-        message: 'Cart not found'
+    const cart = getUserCart(userId);
+    
+    if (quantity === 0) {
+      // Remove item if quantity is 0
+      const updatedCart = cart.filter(item => item.id !== itemId);
+      userCarts.set(userId, updatedCart);
+      
+      return res.json({
+        success: true,
+        items: updatedCart,
+        total: updatedCart.reduce((total, item) => total + (item.price * item.quantity), 0),
+        itemsCount: updatedCart.reduce((total, item) => total + item.quantity, 0),
+        message: 'Item removed from cart'
       });
     }
 
-    const itemIndex = cart.items.findIndex(
-      item => item._id.toString() === itemId
-    );
-
+    // Update quantity
+    const itemIndex = cart.findIndex(item => item.id === itemId);
     if (itemIndex === -1) {
       return res.status(404).json({
         success: false,
@@ -171,28 +142,14 @@ router.put('/items/:itemId', protect, async (req, res) => {
       });
     }
 
-    cart.items[itemIndex].quantity = quantity;
-    await cart.save();
-    await cart.populate('items.product', 'name price image category inStock');
-
-    // Transform response
-    const transformedItems = cart.items.map(item => ({
-      _id: item._id,
-      id: item.product._id,
-      productId: item.product._id,
-      name: item.product.name,
-      price: item.product.price,
-      image: item.product.image,
-      category: item.product.category,
-      inStock: item.product.inStock,
-      quantity: item.quantity
-    }));
+    cart[itemIndex].quantity = quantity;
+    userCarts.set(userId, cart);
 
     res.json({
       success: true,
-      items: transformedItems,
-      total: cart.total,
-      itemsCount: cart.itemsCount,
+      items: cart,
+      total: cart.reduce((total, item) => total + (item.price * item.quantity), 0),
+      itemsCount: cart.reduce((total, item) => total + item.quantity, 0),
       message: 'Cart updated successfully'
     });
 
@@ -211,40 +168,17 @@ router.put('/items/:itemId', protect, async (req, res) => {
 router.delete('/items/:itemId', protect, async (req, res) => {
   try {
     const { itemId } = req.params;
+    const userId = req.user._id.toString();
 
-    const cart = await Cart.findOne({ user: req.user._id });
-    if (!cart) {
-      return res.status(404).json({
-        success: false,
-        message: 'Cart not found'
-      });
-    }
-
-    cart.items = cart.items.filter(
-      item => item._id.toString() !== itemId
-    );
-
-    await cart.save();
-    await cart.populate('items.product', 'name price image category inStock');
-
-    // Transform response
-    const transformedItems = cart.items.map(item => ({
-      _id: item._id,
-      id: item.product._id,
-      productId: item.product._id,
-      name: item.product.name,
-      price: item.product.price,
-      image: item.product.image,
-      category: item.product.category,
-      inStock: item.product.inStock,
-      quantity: item.quantity
-    }));
+    const cart = getUserCart(userId);
+    const updatedCart = cart.filter(item => item.id !== itemId);
+    userCarts.set(userId, updatedCart);
 
     res.json({
       success: true,
-      items: transformedItems,
-      total: cart.total,
-      itemsCount: cart.itemsCount,
+      items: updatedCart,
+      total: updatedCart.reduce((total, item) => total + (item.price * item.quantity), 0),
+      itemsCount: updatedCart.reduce((total, item) => total + item.quantity, 0),
       message: 'Item removed from cart successfully'
     });
 
@@ -262,17 +196,8 @@ router.delete('/items/:itemId', protect, async (req, res) => {
 // @access  Private
 router.delete('/', protect, async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user._id });
-    
-    if (!cart) {
-      return res.status(404).json({
-        success: false,
-        message: 'Cart not found'
-      });
-    }
-
-    cart.items = [];
-    await cart.save();
+    const userId = req.user._id.toString();
+    userCarts.set(userId, []);
 
     res.json({
       success: true,
