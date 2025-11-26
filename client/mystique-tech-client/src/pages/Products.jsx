@@ -14,15 +14,26 @@ const Products = () => {
     ? products 
     : products.filter(product => product.category === selectedCategory);
 
-  const handleAddToCart = (product) => {
-    if (!user) {
-      alert('Please login to add items to cart');
-      return;
-    }
-    
-    addToCart(product);
-    alert(`${product.name} added to cart!`);
-  };
+// In your Products component, ensure you're passing all product data
+const handleAddToCart = (product) => {
+  if (!user) {
+    alert('Please login to add items to cart');
+    return;
+  }
+  
+  // Pass the complete product object to preserve all data
+  addToCart({
+    id: product.id,
+    _id: product.id, // Include both id formats for consistency
+    name: product.name,
+    price: product.price,
+    image: product.image,
+    description: product.description,
+    category: product.category
+  });
+  
+  alert(`${product.name} added to cart!`);
+};
 
   return (
     <div className="min-h-screen py-12">

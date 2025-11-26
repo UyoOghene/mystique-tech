@@ -39,30 +39,19 @@ router.get('/', protect, async (req, res) => {
 // @desc    Add item to cart
 // @route   POST /api/cart/items
 // @access  Private
+// routes/cartRoutes.js - Updated add item endpoint
 router.post('/items', protect, async (req, res) => {
   try {
-    const { productId, quantity = 1 } = req.body;
+    const { productId, name, price, image, quantity = 1 } = req.body;
     const userId = req.user._id.toString();
 
     // Validate input
-    if (!productId) {
+    if (!productId || !name || !price) {
       return res.status(400).json({
         success: false,
-        message: 'Product ID is required'
+        message: 'Product ID, name, and price are required'
       });
     }
-
-    // For demo, we'll accept any product ID and use mock data
-    // In production, you would validate against your product database
-    const mockProduct = {
-      _id: productId,
-      id: productId,
-      name: `Product ${productId}`,
-      price: 99.99,
-      image: '/images/placeholder-product.jpg',
-      category: 'electronics',
-      inStock: true
-    };
 
     const cart = getUserCart(userId);
     
@@ -75,9 +64,13 @@ router.post('/items', protect, async (req, res) => {
       // Update quantity if item exists
       cart[existingItemIndex].quantity += quantity;
     } else {
-      // Add new item to cart
+      // Add new item to cart with real product data
       cart.push({
-        ...mockProduct,
+        id: productId,
+        _id: productId,
+        name: name,
+        price: price,
+        image: image || '/images/placeholder-product.jpg',
         quantity: quantity
       });
     }
