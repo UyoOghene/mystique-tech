@@ -1,3 +1,4 @@
+// context/CartContext.js - Updated functions
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -8,71 +9,55 @@ const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Test if cart API is available
-  const testCartAPI = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cart/test`);
-      return response.ok;
-    } catch (error) {
-      console.log('Cart API not available, using localStorage only');
-      return false;
-    }
-  };
-  testCartAPI();
-
   // Load user's cart
   useEffect(() => {
-// In CartContext.js - Update the loadUserCart function
-const loadUserCart = async () => {
-  if (!user) {
-    // For guest users, use localStorage
-    const guestCart = localStorage.getItem('guestCart');
-    setCartItems(guestCart ? JSON.parse(guestCart) : []);
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const token = localStorage.getItem('mystiqueTechToken');
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cart`, {
-      headers: { 
-        'Authorization': `Bearer ${token}` 
+    const loadUserCart = async () => {
+      if (!user) {
+        // For guest users, use localStorage with guest key
+        const guestCart = localStorage.getItem('guestCart');
+        setCartItems(guestCart ? JSON.parse(guestCart) : []);
+        return;
       }
-    });
 
-    if (response.ok) {
-      const data = await response.json();
-      // Ensure all items have proper data structure
-      const validatedItems = (data.items || []).map(item => ({
-        id: item.id || item._id,
-        _id: item.id || item._id,
-        name: item.name || 'Unnamed Product',
-        price: Number(item.price) || 0,
-        image: item.image || '/images/placeholder-product.jpg',
-        quantity: Number(item.quantity) || 1
-      }));
-      setCartItems(validatedItems);
-    } else {
-      console.log('Cart API not available, using localStorage');
-      // Fallback to localStorage
-      const userCart = localStorage.getItem(`userCart_${user.id}`);
-      setCartItems(userCart ? JSON.parse(userCart) : []);
-    }
-  } catch (error) {
-    console.log('Cart API error, using localStorage:', error);
-    // Fallback to localStorage
-    const userCart = localStorage.getItem(`userCart_${user.id}`);
-    setCartItems(userCart ? JSON.parse(userCart) : []);
-  } finally {
-    setLoading(false);
-  }
-};
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('mystiqueTechToken');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cart`, {
+          headers: { 
+            'Authorization': `Bearer ${token}` 
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Loaded cart from backend:', data.items);
+          setCartItems(data.items || []);
+          
+          // Also save to localStorage as backup
+          localStorage.setItem(`userCart_${user.id}`, JSON.stringify(data.items || []));
+        } else {
+          console.log('Cart API not available, using localStorage');
+          // Fallback to localStorage
+          const userCart = localStorage.getItem(`userCart_${user.id}`);
+          setCartItems(userCart ? JSON.parse(userCart) : []);
+        }
+      } catch (error) {
+        console.log('Cart API error, using localStorage:', error);
+        // Fallback to localStorage
+        const userCart = localStorage.getItem(`userCart_${user.id}`);
+        setCartItems(userCart ? JSON.parse(userCart) : []);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     loadUserCart();
   }, [user]);
 
   // Save cart to appropriate storage
   useEffect(() => {
+    if (cartItems.length === 0) return;
+    
     if (!user) {
       // Guest cart
       localStorage.setItem('guestCart', JSON.stringify(cartItems));
@@ -82,59 +67,62 @@ const loadUserCart = async () => {
     }
   }, [cartItems, user]);
 
-// context/CartContext.js - Updated addToCart function
-const addToCart = async (product) => {
-  const productId = product.id || product._id;
-  
-  // Immediate UI update with proper product data
-  const existingItem = cartItems.find(item => (item.id || item._id) === productId);
-  let updatedCart;
-  
-  if (existingItem) {
-    updatedCart = cartItems.map(item => 
-      (item.id || item._id) === productId 
-        ? { ...item, quantity: item.quantity + 1 } 
-        : item
-    );
-  } else {
-    updatedCart = [...cartItems, { 
-      // Store all product details properly
-      id: productId,
-      _id: productId,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      description: product.description,
-      category: product.category,
-      quantity: 1 
-    }];
-  }
-  
-  setCartItems(updatedCart);
-
-  // Try to sync with backend if user is logged in
-  if (user) {
-    try {
-      const token = localStorage.getItem('mystiqueTechToken');
-      await fetch(`${import.meta.env.VITE_API_URL}/api/cart/items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          productId: productId,
-          name: product.name, // Send product name
-          price: product.price, // Send product price
-          image: product.image, // Send product image
-          quantity: 1
-        })
-      });
-    } catch (error) {
-      console.log('Backend sync failed, using localStorage only');
+  const addToCart = async (product) => {
+    const productId = product.id || product._id;
+    
+    // Immediate UI update
+    const existingItem = cartItems.find(item => (item.id || item._id) === productId);
+    let updatedCart;
+    
+    if (existingItem) {
+      updatedCart = cartItems.map(item => 
+        (item.id || item._id) === productId 
+          ? { ...item, quantity: item.quantity + 1 } 
+          : item
+      );
+    } else {
+      updatedCart = [...cartItems, { 
+        // Store complete product information
+        id: productId,
+        _id: productId,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        description: product.description,
+        category: product.category,
+        quantity: 1 
+      }];
     }
-  }
-};
+    
+    setCartItems(updatedCart);
+
+    // Try to sync with backend if user is logged in
+    if (user) {
+      try {
+        const token = localStorage.getItem('mystiqueTechToken');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cart/items`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            productId: productId,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            quantity: 1
+          })
+        });
+
+        if (!response.ok) {
+          console.warn('Backend sync failed, using localStorage only');
+        }
+      } catch (error) {
+        console.log('Backend sync failed, using localStorage only:', error);
+      }
+    }
+  };
 
   const removeFromCart = async (productId) => {
     const updatedCart = cartItems.filter(item => (item.id || item._id) !== productId);
@@ -190,6 +178,12 @@ const addToCart = async (product) => {
   const clearCart = async () => {
     setCartItems([]);
 
+    // Clear both localStorage entries
+    localStorage.removeItem('guestCart');
+    if (user) {
+      localStorage.removeItem(`userCart_${user.id}`);
+    }
+
     // Sync with backend if user is logged in
     if (user) {
       try {
@@ -205,6 +199,31 @@ const addToCart = async (product) => {
       }
     }
   };
+
+  // Transfer guest cart to user cart on login
+  useEffect(() => {
+    const transferGuestCartToUser = async () => {
+      if (user) {
+        const guestCart = localStorage.getItem('guestCart');
+        if (guestCart) {
+          const guestItems = JSON.parse(guestCart);
+          if (guestItems.length > 0) {
+            console.log('Transferring guest cart to user cart:', guestItems);
+            
+            // Add each guest item to user cart
+            for (const item of guestItems) {
+              await addToCart(item);
+            }
+            
+            // Clear guest cart
+            localStorage.removeItem('guestCart');
+          }
+        }
+      }
+    };
+
+    transferGuestCartToUser();
+  }, [user]);
 
   const getCartTotal = () => {
     return cartItems.reduce((total, item) => {
@@ -239,5 +258,5 @@ const useCart = () => {
   if (!context) throw new Error('useCart must be used within CartProvider');
   return context;
 };
-
+  
 export { CartProvider, useCart };

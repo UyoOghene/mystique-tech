@@ -1,3 +1,4 @@
+// routes/cartRoutes.js
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
@@ -12,6 +13,11 @@ const getUserCart = (userId) => {
   }
   return userCarts.get(userId);
 };
+
+// Test endpoint
+router.get('/test', (req, res) => {
+  res.json({ message: 'Cart API is working!' });
+});
 
 // @desc    Get user's cart
 // @route   GET /api/cart
@@ -39,17 +45,18 @@ router.get('/', protect, async (req, res) => {
 // @desc    Add item to cart
 // @route   POST /api/cart/items
 // @access  Private
-// routes/cartRoutes.js - Updated add item endpoint
 router.post('/items', protect, async (req, res) => {
   try {
     const { productId, name, price, image, quantity = 1 } = req.body;
     const userId = req.user._id.toString();
 
-    // Validate input
-    if (!productId || !name || !price) {
+    console.log('Add to cart request:', { productId, name, price, userId });
+
+    // Validate input - make requirements less strict
+    if (!productId) {
       return res.status(400).json({
         success: false,
-        message: 'Product ID, name, and price are required'
+        message: 'Product ID is required'
       });
     }
 
@@ -57,25 +64,27 @@ router.post('/items', protect, async (req, res) => {
     
     // Check if item already exists in cart
     const existingItemIndex = cart.findIndex(
-      item => item.id === productId
+      item => item.id === productId || item._id === productId
     );
 
     if (existingItemIndex > -1) {
       // Update quantity if item exists
       cart[existingItemIndex].quantity += quantity;
     } else {
-      // Add new item to cart with real product data
+      // Add new item to cart with provided data or defaults
       cart.push({
         id: productId,
         _id: productId,
-        name: name,
-        price: price,
+        name: name || `Product ${productId}`,
+        price: price || 99.99,
         image: image || '/images/placeholder-product.jpg',
         quantity: quantity
       });
     }
 
     userCarts.set(userId, cart);
+
+    console.log('Cart after add:', cart);
 
     res.json({
       success: true,
@@ -103,7 +112,9 @@ router.put('/items/:itemId', protect, async (req, res) => {
     const { quantity } = req.body;
     const userId = req.user._id.toString();
 
-    if (!quantity || quantity < 0) {
+    console.log('Update cart item:', { itemId, quantity, userId });
+
+    if (quantity === undefined || quantity < 0) {
       return res.status(400).json({
         success: false,
         message: 'Valid quantity is required'
@@ -114,7 +125,7 @@ router.put('/items/:itemId', protect, async (req, res) => {
     
     if (quantity === 0) {
       // Remove item if quantity is 0
-      const updatedCart = cart.filter(item => item.id !== itemId);
+      const updatedCart = cart.filter(item => item.id !== itemId && item._id !== itemId);
       userCarts.set(userId, updatedCart);
       
       return res.json({
@@ -127,7 +138,7 @@ router.put('/items/:itemId', protect, async (req, res) => {
     }
 
     // Update quantity
-    const itemIndex = cart.findIndex(item => item.id === itemId);
+    const itemIndex = cart.findIndex(item => item.id === itemId || item._id === itemId);
     if (itemIndex === -1) {
       return res.status(404).json({
         success: false,
@@ -163,8 +174,10 @@ router.delete('/items/:itemId', protect, async (req, res) => {
     const { itemId } = req.params;
     const userId = req.user._id.toString();
 
+    console.log('Remove from cart:', { itemId, userId });
+
     const cart = getUserCart(userId);
-    const updatedCart = cart.filter(item => item.id !== itemId);
+    const updatedCart = cart.filter(item => item.id !== itemId && item._id !== itemId);
     userCarts.set(userId, updatedCart);
 
     res.json({
