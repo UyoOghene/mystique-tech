@@ -102,18 +102,15 @@ const AuthProvider = ({ children }) => {
   };
 
 // context/AuthContext.js - Updated logout function
+// context/AuthContext.js - Updated logout function
 const logout = () => {
-  // Save current cart to guest storage before logging out
-  const currentCart = localStorage.getItem(`userCart_${user?.id}`);
-  if (currentCart && user) {
-    localStorage.setItem('guestCart', currentCart);
-  }
+  // Don't save cart to guest storage on logout to prevent duplication
+  // The cart will be loaded from backend when user logs back in
   
   localStorage.removeItem('mystiqueTechToken');
   localStorage.removeItem('mystiqueTechUser');
   setUser(null);
 };
-
   const isAdmin = user?.isAdmin;
 
   const value = {

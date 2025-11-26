@@ -1,12 +1,12 @@
+// server.js or app.js - Updated CORS configuration
 const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
 
-// MANUAL CORS MIDDLEWARE - This always works
+// Enhanced CORS middleware
 app.use((req, res, next) => {
-  // Allow all origins or specific ones
   const allowedOrigins = [
     'https://xetechcl.vercel.app',
     'https://xetech.vercel.app',
@@ -15,15 +15,15 @@ app.use((req, res, next) => {
   ];
   
   const origin = req.headers.origin;
+  
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*'); // Fallback
   }
   
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
@@ -39,7 +39,8 @@ app.use(express.json());
 const authRoutes = require('./routes/authRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 app.use('/api/auth', authRoutes);
-app.use('/api/cart', require('./routes/cartRoutes'));
+app.use('/api/cart', cartRoutes);
+
 // Test endpoint to verify CORS is working
 app.get('/api/cors-test', (req, res) => {
   res.json({ 
@@ -75,11 +76,11 @@ mongoose.connect(process.env.MONGODB_URI)
   });
 
 const PORT = process.env.PORT || 5000;
-module.exports = app;
 
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🔗 CORS Test: https://xetech.vercel.app/api/cors-test`);
   });
 }
+
+module.exports = app;
