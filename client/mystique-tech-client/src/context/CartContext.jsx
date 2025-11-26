@@ -1,4 +1,3 @@
-// context/CartContext.jsx - Fixed version
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -10,14 +9,14 @@ const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [cartTransferred, setCartTransferred] = useState(false);
 
-  // Load user's cart
+  // Load user's cart - FIXED: Only load when user changes
   useEffect(() => {
     const loadUserCart = async () => {
       if (!user) {
         // For guest users, use localStorage with guest key
         const guestCart = localStorage.getItem('guestCart');
         setCartItems(guestCart ? JSON.parse(guestCart) : []);
-        setCartTransferred(false); // Reset transfer flag for guest
+        setCartTransferred(false);
         return;
       }
 
@@ -34,9 +33,6 @@ const CartProvider = ({ children }) => {
           const data = await response.json();
           console.log('Loaded cart from backend:', data.items);
           setCartItems(data.items || []);
-          
-          // Also save to localStorage as backup
-          localStorage.setItem(`userCart_${user.id}`, JSON.stringify(data.items || []));
         } else {
           console.log('Cart API not available, using localStorage');
           // Fallback to localStorage
@@ -56,9 +52,17 @@ const CartProvider = ({ children }) => {
     loadUserCart();
   }, [user]);
 
-  // Save cart to appropriate storage
+  // Save cart to appropriate storage - FIXED: Only save when cartItems change
   useEffect(() => {
-    if (cartItems.length === 0) return;
+    if (cartItems.length === 0) {
+      // Clear storage if cart is empty
+      if (!user) {
+        localStorage.removeItem('guestCart');
+      } else {
+        localStorage.removeItem(`userCart_${user.id}`);
+      }
+      return;
+    }
     
     if (!user) {
       // Guest cart
@@ -73,37 +77,34 @@ const CartProvider = ({ children }) => {
   const addToCart = useCallback(async (product) => {
     const productId = product.id || product._id;
     
-    // Immediate UI update
-    const existingItem = cartItems.find(item => (item.id || item._id) === productId);
-    let updatedCart;
-    
-    if (existingItem) {
-      updatedCart = cartItems.map(item => 
-        (item.id || item._id) === productId 
-          ? { ...item, quantity: item.quantity + 1 } 
-          : item
-      );
-    } else {
-      updatedCart = [...cartItems, { 
-        // Store complete product information
-        id: productId,
-        _id: productId,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        description: product.description,
-        category: product.category,
-        quantity: 1 
-      }];
-    }
-    
-    setCartItems(updatedCart);
+    setCartItems(prevCart => {
+      const existingItem = prevCart.find(item => (item.id || item._id) === productId);
+      
+      if (existingItem) {
+        return prevCart.map(item => 
+          (item.id || item._id) === productId 
+            ? { ...item, quantity: item.quantity + 1 } 
+            : item
+        );
+      } else {
+        return [...prevCart, { 
+          id: productId,
+          _id: productId,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          description: product.description,
+          category: product.category,
+          quantity: 1 
+        }];
+      }
+    });
 
     // Try to sync with backend if user is logged in
     if (user) {
       try {
         const token = localStorage.getItem('mystiqueTechToken');
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cart/items`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/cart/items`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -117,19 +118,14 @@ const CartProvider = ({ children }) => {
             quantity: 1
           })
         });
-
-        if (!response.ok) {
-          console.warn('Backend sync failed, using localStorage only');
-        }
       } catch (error) {
         console.warn('Backend sync failed, using localStorage only');
       }
     }
-  }, [cartItems, user]);
+  }, [user]);
 
   const removeFromCart = async (productId) => {
-    const updatedCart = cartItems.filter(item => (item.id || item._id) !== productId);
-    setCartItems(updatedCart);
+    setCartItems(prevCart => prevCart.filter(item => (item.id || item._id) !== productId));
 
     // Sync with backend if user is logged in
     if (user) {
@@ -153,12 +149,13 @@ const CartProvider = ({ children }) => {
       return;
     }
     
-    const updatedCart = cartItems.map(item => 
-      (item.id || item._id) === productId 
-        ? { ...item, quantity } 
-        : item
+    setCartItems(prevCart => 
+      prevCart.map(item => 
+        (item.id || item._id) === productId 
+          ? { ...item, quantity } 
+          : item
+      )
     );
-    setCartItems(updatedCart);
 
     // Sync with backend if user is logged in
     if (user) {
@@ -203,85 +200,75 @@ const CartProvider = ({ children }) => {
     }
   };
 
-  // Transfer guest cart to user cart on login - FIXED to prevent duplication
+  // Transfer guest cart to user cart on login - COMPLETELY REWRITTEN
   useEffect(() => {
-    const transferGuestCartToUser = async () => {
-      if (user && !cartTransferred) {
-        const guestCart = localStorage.getItem('guestCart');
-        if (guestCart) {
-          const guestItems = JSON.parse(guestCart);
-          if (guestItems.length > 0) {
-            console.log('Transferring guest cart to user cart:', guestItems);
-            
-            // Clear current cart first to avoid duplicates
-            const currentCart = [...cartItems];
-            setCartItems([]);
-            
-            // Add each guest item to user cart one by one
-            for (const item of guestItems) {
-              // Use a timeout to ensure state updates properly
-              await new Promise(resolve => setTimeout(resolve, 100));
-              
-              // Add item directly to avoid recursion
-              const productToAdd = {
-                id: item.id || item._id,
-                _id: item.id || item._id,
-                name: item.name,
-                price: item.price,
-                image: item.image,
-                description: item.description,
-                category: item.category
-              };
-              
-              // Update cart state directly for this transfer
-              setCartItems(prev => {
-                const existing = prev.find(p => (p.id || p._id) === productToAdd.id);
-                if (existing) {
-                  return prev.map(p => 
-                    (p.id || p._id) === productToAdd.id 
-                      ? { ...p, quantity: p.quantity + item.quantity }
-                      : p
-                  );
-                } else {
-                  return [...prev, { ...productToAdd, quantity: item.quantity }];
-                }
-              });
-              
-              // Sync with backend
-              if (user) {
-                try {
-                  const token = localStorage.getItem('mystiqueTechToken');
-                  await fetch(`${import.meta.env.VITE_API_URL}/api/cart/items`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                      productId: productToAdd.id,
-                      name: productToAdd.name,
-                      price: productToAdd.price,
-                      image: productToAdd.image,
-                      quantity: item.quantity
-                    })
-                  });
-                } catch (error) {
-                  console.warn('Backend sync failed during transfer');
-                }
-              }
-            }
-            
-            // Clear guest cart and mark as transferred
-            localStorage.removeItem('guestCart');
-            setCartTransferred(true);
-            console.log('Guest cart transfer completed');
-          }
+    const transferGuestCart = async () => {
+      // Only transfer if we have a user, haven't transferred yet, and have guest cart items
+      if (!user || cartTransferred) return;
+
+      const guestCart = localStorage.getItem('guestCart');
+      if (!guestCart) {
+        setCartTransferred(true);
+        return;
+      }
+
+      const guestItems = JSON.parse(guestCart);
+      if (guestItems.length === 0) {
+        setCartTransferred(true);
+        return;
+      }
+
+      console.log('Starting guest cart transfer:', guestItems);
+      
+      try {
+        const token = localStorage.getItem('mystiqueTechToken');
+        
+        // Add each guest item to backend
+        for (const item of guestItems) {
+          const productId = item.id || item._id;
+          
+          await fetch(`${import.meta.env.VITE_API_URL}/api/cart/items`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              productId: productId,
+              name: item.name,
+              price: item.price,
+              image: item.image,
+              quantity: item.quantity
+            })
+          });
         }
+
+        // Clear guest cart and mark as transferred
+        localStorage.removeItem('guestCart');
+        setCartTransferred(true);
+        
+        // Reload cart from backend to get updated state
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/cart`, {
+          headers: { 
+            'Authorization': `Bearer ${token}` 
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setCartItems(data.items || []);
+        }
+        
+        console.log('Guest cart transfer completed successfully');
+      } catch (error) {
+        console.error('Guest cart transfer failed:', error);
+        // Even if transfer fails, mark as transferred to prevent retries
+        setCartTransferred(true);
       }
     };
 
-    transferGuestCartToUser();
-  }, [user, cartTransferred]); // Removed addToCart dependency
+    transferGuestCart();
+  }, [user, cartTransferred]);
 
   const getCartTotal = () => {
     return cartItems.reduce((total, item) => {

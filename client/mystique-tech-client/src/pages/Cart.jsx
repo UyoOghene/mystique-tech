@@ -31,15 +31,16 @@ const Cart = () => {
   };
 
   // Helper function to get product display data
-  const getProductDisplayData = (item) => {
-    return {
-      id: item.id || item._id,
-      name: item.name || 'Unnamed Product',
-      price: Number(item.price) || 0,
-      quantity: Number(item.quantity) || 0,
-      image: item.image || '/images/placeholder-product.jpg'
-    };
+// In your Cart component - ensure this helper function exists
+const getProductDisplayData = (item) => {
+  return {
+    id: item.id || item._id,
+    name: item.name || 'Unnamed Product',
+    price: Number(item.price) || 0,
+    quantity: Number(item.quantity) || 0,
+    image: item.image || '/images/placeholder-product.jpg'
   };
+};
 
   if (!cartItems || cartItems.length === 0) {
     return (

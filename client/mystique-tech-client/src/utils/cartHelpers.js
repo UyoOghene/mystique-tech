@@ -20,4 +20,4 @@ export const addItemToCart = (cartItems, product) => {
     );
   }
   return [...cartItems, { ...product, quantity: 1 }];
-};
+}; 
