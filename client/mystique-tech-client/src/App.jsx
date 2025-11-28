@@ -13,6 +13,7 @@ import Register from './pages/Register';
 import Admin from './pages/Admin';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
+import Checkout from './pages/Checkout';
 import './index.css';
 
 function App() {
@@ -31,12 +32,22 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   
+                  
                   {/* Protected Routes */}
                   <Route 
                     path="/cart" 
                     element={
                       <PrivateRoute>
                         <Cart />
+                      </PrivateRoute>
+                    } 
+                  />
+                
+                  <Route 
+                    path="/checkout" 
+                    element={
+                      <PrivateRoute>
+                        <Checkout />
                       </PrivateRoute>
                     } 
                   />

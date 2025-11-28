@@ -1,47 +1,45 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext'; // Import useAuth
+import { useAuth } from '../context/AuthContext';
 import products from '../data/Products';
 import categories from '../data/Category';
 
 const Products = () => {
   const { addToCart } = useCart();
-  const { user } = useAuth(); // Get user from auth context
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const filteredProducts = selectedCategory === 'all' 
     ? products 
     : products.filter(product => product.category === selectedCategory);
 
-// In your Products component, ensure you're passing all product data
-const handleAddToCart = (product) => {
-  if (!user) {
-    alert('Please login to add items to cart');
-    return;
-  }
-  
-  // Pass the complete product object to preserve all data
-  addToCart({
-    id: product.id,
-    _id: product.id, // Include both id formats for consistency
-    name: product.name,
-    price: product.price,
-    image: product.image,
-    description: product.description,
-    category: product.category
-  });
-  
-  alert(`${product.name} added to cart!`);
-};
+  const handleAddToCart = (product) => {
+    if (!user) {
+      alert('Please login to add items to cart');
+      return;
+    }
+    
+    // Pass the complete product object to preserve all data
+    addToCart({
+      id: product.id,
+      _id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      description: product.description,
+      category: product.category
+    });
+    
+    alert(`${product.name} added to cart!`);
+  };
 
   return (
     <div className="min-h-screen py-12">
-      
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-elegant text-Xe-purple-800 mb-4">
+          <h1 className="text-4xl font-elegant text-purple-800 mb-4">
             Our Products
           </h1>
           <p className="text-lg text-gray-600">
@@ -58,7 +56,7 @@ const handleAddToCart = (product) => {
                 onClick={() => setSelectedCategory(category.value)}
                 className={`px-4 py-2 rounded-full transition duration-300 ${
                   selectedCategory === category.value
-                    ? 'bg-gradient-to-r from-Xe-purple-500 to-Xe-pink-500 text-white'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -84,7 +82,7 @@ const handleAddToCart = (product) => {
               
               <div className="p-6">
                 <Link to={`/product/${product.id}`}>
-                  <h3 className="text-xl font-semibold text-Xe-purple-800 mb-2 hover:text-Xe-purple-600 cursor-pointer">
+                  <h3 className="text-xl font-semibold text-purple-800 mb-2 hover:text-purple-600 cursor-pointer">
                     {product.name}
                   </h3>
                 </Link>
@@ -94,7 +92,7 @@ const handleAddToCart = (product) => {
                 </p>
                 
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-Xe-pink-600 font-bold text-lg">
+                  <span className="text-pink-600 font-bold text-lg">
                     ${product.price}
                   </span>
                   {!product.inStock && (
@@ -110,17 +108,26 @@ const handleAddToCart = (product) => {
                     View Details
                   </Link>
                   
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    disabled={!product.inStock || !user} // Disable if not logged in
-                    className={`flex-1 px-4 py-2 rounded transition duration-300 ${
-                      product.inStock && user
-                        ? 'bg-blue-300 text-black hover:opacity-90'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    {user ? 'Add to Cart' : 'Login to Add'}
-                  </button>
+                  {user ? (
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      disabled={!product.inStock}
+                      className={`flex-1 px-4 py-2 rounded transition duration-300 ${
+                        product.inStock
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      Add to Cart
+                    </button>
+                  ) : (
+                    <Link
+                      to="/login"
+                      className="flex-1 text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded hover:opacity-90 transition duration-300"
+                    >
+                      Login to Add
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

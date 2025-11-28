@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
+
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
@@ -26,8 +27,9 @@ const Cart = () => {
     }
     
     // For now, just show a success message
-    alert('Thank you for your order! This is a demo - no real transaction occurred.');
-    clearCart();
+      navigate('/checkout');
+    // alert('Thank you for your order! This is a demo - no real transaction occurred.');
+    // clearCart();
   };
 
   // Helper function to get product display data
