@@ -104,21 +104,30 @@ const FeaturedProducts = () => {
                       </span>
                     </div>
                     
-                    <button
-                      onClick={() => handleAddToCart(product)}
-                      disabled={!product.inStock || !user}
-                      className={`px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 ease-out transform group-hover:scale-105 backdrop-blur-sm ${
-                        product.inStock && user
-                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-200'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      {user ? 'Add to Cart' : 'Login to Add'}
-                    </button>
+                    {user ? (
+                      <button
+                        onClick={() => handleAddToCart(product)}
+                        disabled={!product.inStock}
+                        className={`px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 ease-out transform group-hover:scale-105 backdrop-blur-sm ${
+                          product.inStock
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-200'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                      </button>
+                    ) : (
+                      <Link
+                        to="/login"
+                        className="px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 ease-out transform group-hover:scale-105 backdrop-blur-sm bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-200 text-center"
+                      >
+                        Login to Add
+                      </Link>
+                    )}
                   </div>
 
                   {/* Stock Status */}
-                  {!product.inStock && (
+                  {!product.inStock && user && (
                     <div className="mt-3 text-center transition-all duration-300 ease-out">
                       <span className="text-red-500 text-sm font-semibold bg-red-50 px-3 py-1 rounded-full transition-all duration-300 ease-out">
                         Out of Stock

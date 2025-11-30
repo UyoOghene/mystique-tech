@@ -41,7 +41,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-700 via-purple-700 to-gray-900 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br md:w-[100vw] lg:[100vw] from-gray-700 via-purple-700 to-gray-900 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         {/* Grid Pattern */}
