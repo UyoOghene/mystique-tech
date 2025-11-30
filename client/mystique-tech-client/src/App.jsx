@@ -22,9 +22,9 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <Router>
-            <div className="App min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+            <div className="App min-h-screen bg-gradient-to-br flex flex-col items-center from-purple-50 to-pink-50 w-[10vw">
               <Navbar />
-              <main className="flex-grow">
+              <main className=" flex flex-col items-center flex-grow">
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/products" element={<Products />} />

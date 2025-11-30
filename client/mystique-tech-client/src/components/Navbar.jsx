@@ -61,7 +61,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="text-violet-400 font-extrabold p-4 bg-gradient-to-r backdrop-blur-xl from-black via-black to-black shadow-xl sticky top-0 z-50">
+    <nav className=" w-[100%] text-violet-400 font-extrabold p-4 bg-gradient-to-r backdrop-blur-xl from-black via-black to-black shadow-xl sticky top-0 z-50">
       <div className="max-w-7xl mx-auto">
         {/* Desktop Navigation */}
         <div className="hidden md:flex justify-between items-center">
@@ -107,7 +107,7 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden flex justify-between items-center">
+        <div className="md:hidden w-[100%] overflow-hidden flex justify-between items-center">
           <Link to="/" className="text-2xl font-elegant font-bold flex items-center">
             <img 
               src={xeLogo}

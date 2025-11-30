@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import xeLogo from '/images/Xe-logo.png';
-import aboutBg from '/images/amanz-pGLBbI4SqnQ-unsplash.jpg';
+import aboutBg from '/images/akhil-yerabati-Q2uV5TkjNz8-unsplash.jpg';
 
 const About = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -41,7 +41,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-700 via-purple-700 to-gray-900 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         {/* Grid Pattern */}
